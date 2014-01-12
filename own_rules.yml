@@ -1,0 +1,99 @@
+rule1:
+  "Wat is de huidige situatie?":
+    radio:  
+      $situation:
+        1:  Ochtend (~0500)
+        2:  Na-ochtend  (0800-0900)
+        3:  Middag (1300-1400)
+        4:  Einde dag  
+        5:  Speciaal
+
+
+# Kijk of prognose nodig
+rule2:
+  any:
+    - equals(:situation, 1)
+    - equals(:situation, 3)
+
+  "Wat is de verwachte afzet (milj kuub/uur)":
+    text: afzet
+
+  "Wat was de gerealiseerde afzet gisteren??":
+    text: historie
+  
+  "Wat is het voor dag vandaag":
+    radio:  
+      $dayType:
+        0: Doordeweekse dag
+        1: Zaterdag
+        2: Zondag
+
+  "Wat is de effectieve temp (graden Celcius)":
+    text: temp
+
+# Bereken prognose
+rule3:
+  all:
+    - equals(:dayType, 0)
+    all:
+      ###
+      ###
+      ###
+
+# Vragen voor situatie 1
+rule4:
+  all:
+    - equals(situation, 1)
+
+  "Wat is de huidige druk (bar)?":
+    text: druk
+
+  "Wat voor middagpiek wordt er verwacht?":
+    radio:
+      $middagPiek:
+        0: Korte
+        1: Lange
+
+  "Komt er een significante hoeveelheid h-gas binnen bij Wieringermeer?":
+    radio:
+      $hgas:
+        0: Nee
+        1: Ja
+
+#Goals situatie 1
+goal1:
+  condition:
+    all:
+      - less(:prognose, 2)
+  "Geen compressie nodig op dit moment."
+
+goal2:
+  condition:
+    all:
+      - equal(:middagPiek, 0)
+  "Geen compressie nodig op dit moment."
+
+goal3:
+  all:
+    - equal(:middagPiek, 1)
+    - equal(:hgas, 0)
+  "Zet Oldenboorn aan"
+
+goal4:
+  all:
+    - equal(:middagPiek, 1)
+    - equal(:hgas, 1)
+  "Zet Wieringermeer aan"
+
+goal5:
+  all:
+    - less(:druk, 53)
+    - equal(:hgas, 0)
+  "Zet Oldenboorn aan"
+
+goal6:
+  all:
+    - less(:druk, 53)
+    - equal(:hgas, 1)
+  "Zet Wieringermeer aan"
+
