@@ -1,11 +1,12 @@
 class Rule
 
-  attr_accessor :name, :questions, :matcher
+  attr_accessor :name, :questions, :matcher, :is_goal
 
-  def initialize(name)
+  def initialize(name, is_goal = false)
 
     self.name      = name.to_sym
     self.questions = Array.new
+    self.is_goal   = is_goal
 
   end
 
@@ -91,6 +92,8 @@ class KnowledgeBase < Ruleby::Rulebook
 
     # star to convert array to arguments
     rule *conditions do |v|
+
+      # when rule is applicable, add to global ? array with possible rules
 
       puts 'TRIGGERED!!'
 
@@ -181,7 +184,7 @@ class KnowledgeBase < Ruleby::Rulebook
     # only works on strings
     if variable.is_a? String
 
-        return variable[0] == ':'
+      return variable[0] == '$'
 
     end
 
@@ -202,29 +205,80 @@ class RuleParser
       # create rules from the yml file like so:
       # maybe instead of objects, use a hash?
 
-      # create the rule
-      rule            = Rule.new 'rule1'
+      yml_config = YAML.load_file(location)
 
-      # create a new question for each question asked
-      question        = Question.new 'wat is de temperatuur?'
+      yml_config.each do |rule_name, rule_content|
 
-      # set the answering type for the question
-      question.answer = TextAnswer.new('temperature')
+        rule_content.each do |name, value|
 
-      # add the question to the rule
-      rule.questions << question
+          case name
 
-      # create a new condition object
-      matcher = Matcher.new :all
+            when 'any' # it's an any matcher
 
-      # fact :something == 1
-      matcher.equals ':something', '1'
 
-      # set the condition on the rule
-      rule.matcher = matcher
+            when 'all' # it's an all matcher
 
-      # add a rule to the knownledge base
-      knowledge_base.add_rule rule
+
+            when 'goal' # it's a goal -> can't contain questions AND facts
+
+
+            when name[0] == '$' # it's a fact
+
+
+            else # it's a question
+
+          end
+
+        end
+
+      end
+
+
+      # when there is a goal setting, raise error when there are questions
+
+
+
+
+
+
+
+
+
+
+      ## create the rule
+      #rule            = Rule.new 'rule1'
+      #
+      ## create a new question for each question asked
+      #question        = Question.new 'wat is de temperatuur?'
+      #
+      ## set the answering type for the question
+      #question.answer = TextAnswer.new('temperature')
+      #
+      ## add the question to the rule
+      #rule.questions << question
+      #
+      ## create a new condition object
+      #matcher = Matcher.new :all
+      #
+      ## fact :something == 1
+      #matcher.equals ':something', '1'
+      #
+      ## set the condition on the rule
+      #rule.matcher = matcher
+      #
+      ## add a rule to the knownledge base
+      #knowledge_base.add_rule rule
+
+    end
+
+    def is_question?(value)
+
+      case value
+        when 'any'
+        when 'all'
+
+
+      end
 
     end
 
@@ -236,7 +290,7 @@ end
 k = KnowledgeBase.new
 
 # parse the yml file and create rules in the knowledge base
-RuleParser.yml("#{Rails::root}/rules.yml", k)
+RuleParser.yml("#{Rails::root}/own_rules.yml", k)
 
 # add all the facts known (passed in the form)
 k.assert Fact.new ':something', '1'
