@@ -1,0 +1,368 @@
+rule1:
+  "Wat is de huidige situatie?":
+    radio:  
+      $situation:
+        1:  Ochtend (~0500)
+        2:  Na-ochtend  (0800-0900)
+        3:  Middag (1300-1400)
+        4:  Einde dag  
+        5:  Speciaal
+
+# Kijk of prognose nodig
+rule2:
+  any:
+    - equals($situation, 1)
+    - equals($situation, 3)
+
+  "Wat is de verwachte afzet voor het aankomende dagdeel (milj kuub/uur)":
+    text: $afzet
+
+  "Wat was de gerealiseerde afzet gisteren??":
+    text: $historie
+  
+  "Wat is het voor dag vandaag":
+    radio:  
+      $dayType:
+        0: Doordeweekse dag
+        1: Zaterdag
+        2: Zondag
+
+# Bereken prognose
+rule3:
+
+  all:
+    equals($dayType, 0)
+
+  # directly set the fact $prognose with the formula ($afzet + $historie) /2
+  $prognose: ($afzet + $historie) / 2
+
+rule4:
+
+  all:
+    equals($dayType, 1)
+
+  # directly set the fact $prognose with the formula ($afzet + $historie) /2
+  $prognose: ($afzet + ($historie*0.8)) / 2
+
+rule5:
+
+  all:
+    equals($dayType, 2)
+
+  # directly set the fact $prognose with the formula ($afzet + $historie) /2
+  $prognose: ($afzet + ($historie*0.7)) / 2
+
+
+# Vragen voor situatie 1
+rule6:
+
+  all:
+    - equals($situation, 1)
+
+  "Wat is de huidige druk (bar)?":
+    text: $druk
+
+  "Wat voor middagpiek wordt er verwacht?":
+    radio:
+      $middagPiek:
+        0: Korte
+        1: Lange
+
+  "Wat is de effectieve temp (graden Celcius)":
+    text: $temp
+
+  "Wat was de effectieve temp gisteren (graden Celcius)?":
+    text: $tempHist
+
+  "Komt er een significante hoeveelheid h-gas binnen bij Wieringermeer?":
+    radio:
+      $hgas:
+        0: Nee
+        1: Ja
+
+#Regels situatie 1
+rule7:
+  any:
+    - less($tempHist, $temp)
+    - less($temp, 16)
+
+  $prognose: $prognose * 0.9^($tempHist-$temp)  
+
+#Goals situatie 1
+goal1:
+  all:
+    - equals($situation, 1)
+    - less($prognose, 2)
+
+  goal: "Geen compressie nodig op dit moment."
+
+goal2:
+  all:
+    - equals($situation, 1)
+    - equals($middagPiek, 0)
+
+  goal: "Geen compressie nodig op dit moment."
+
+goal3:
+  all:
+    - equals($situation, 1)
+    - equals($middagPiek, 1)
+  goal: "Zet Oldenboorn aan"
+
+goal4:
+  all:
+    - equals($situation, 1)
+    - equals($middagPiek, 1)
+    - equals($hgas, 1)
+
+  goal: "Zet Wieringermeer aan"
+
+goal5:
+  all:
+    - equals($situation, 1)
+    - less($druk, 53)
+    - equals($hgas, 0)
+
+  goal: "Zet Oldenboorn aan"
+
+goal6:
+  all:
+    - equals($situation, 1)
+    - less($druk, 53)
+    - equals($hgas, 1)
+
+  goal: "Zet Wieringermeer aan"
+# Vragen situatie 2
+rule8:
+  "Welke compressie-stations draaien op dit moment?":
+    checkbox:
+      Old: Oldenboorn
+      Wie: Wieringermeer
+      Bev: Beverwijk
+
+  "Voert Alkmaar op dit moment een significante hoeveelheid gas in?":
+    radio:
+      $Alk:
+        0: Nee
+        1: Ja
+
+  "Verwacht je dat compressie nodig gaat zijn?":
+    radio:
+      $compNodig:
+        0: Nee
+        1: Ja
+rule9:
+  all:
+    - equals($compNodig, 1)
+
+  "Is er een kleine of een grote compressie benodigd?":
+    radio:
+      $compGrootte
+        1: Klein
+        2: Groot
+
+# Regels situatie 2
+# Goals  situatie 2
+goal7:
+  all:
+    - equals($situation, 2)
+    - equals($Old, false)
+    - equals($Wie, false)
+    - equals($Bev, false)
+    - equals($compNodig:, 1)
+    - equals($Alk, 1)
+
+  goal: "Zet Wieringermeer aan"
+
+goal8:
+  all:
+    - equals($situation, 2)
+    - equals($Old, false)
+    - equals($Wie, false)
+    - equals($Bev, false)
+    - equals($Alk, 0)
+    - equals($compGrootte, 1)
+
+  goal: "Zet Wieringermeer aan"
+
+goal9:
+  all:
+    - equals($situation, 2)
+    - equals($Old, false)
+    - equals($Wie, false)
+    - equals($Bev, false)
+    - equals($Alk, 0)
+    - equals($compGrootte, 2)
+
+  goal: "Zet Beverwijk aan"
+
+# Vragen situatie 3
+rule10:
+  all:
+    - equals($situation, 3)
+
+  "Met hoeveel graden gaat de effectieve temperatuur dalen vanmiddag/vanavond??":
+    text: $drop
+
+# Regels situatie 3
+rule11:
+  all:
+    - equals($situation, 3)
+    - greater($drop, 3)
+
+  $prognose: $prognose * 1.2 ^ ($drop/3)
+
+# Goals situatie 3
+goal10:
+  all:
+    - equals($situation, 3)
+    - less($prognose, 2)
+
+  goal: "Geen compressie nodig op dit moment."
+
+# Regels situatie 3 (verdere vragen)
+rule12:
+  all:
+    - equals($situation, 3)
+
+  "Wat is de huidige druk op Abbenbroek?":
+    text: $drukAbb
+
+  "Welke compressie-stations draaien op dit moment?":
+    checkbox:
+      Old: Oldenboorn
+      Wie: Wieringermeer
+      Bev: Beverwijk
+
+# Goals situatie 3 (verdere goals)
+goal11:
+  all:
+    - equals($situation, 3)
+    - less($drukAbb, 49)
+    - equals($Old, true)
+    - equals($Wie, false)
+    - equals($Bev, false)
+
+    goal: "Zet Wieringermeer aan." 
+
+goal12:
+  all:
+    - equals($situation, 3)
+    - less($drukAbb, 49)
+    - equals($Old, false)
+    - equals($Wie, false)
+    - equals($Bev, false)
+
+    goal: "Zet Oldenboorn aan." 
+
+# Vragen situatie 4
+rule13:
+  all:
+    - equals($situatie, 4)
+
+  "Is er genoeg buffer om de komende 4 uur zonder compressie te draaien?":
+    radio:
+      $buffer:
+        0: Nee
+        1: Ja
+
+#Goals situatie 4
+goal13:
+  all:
+    - equals($situation, 4)
+    - equals($buffer, 0)
+
+  goal: "Zet alle huidige compressie naar het minimum"
+
+goal14:
+  all:
+    - equals($situation, 4)
+    - equals($buffer, 1)
+
+  goal: "Zet alle compressie uit"
+
+#Vragen situatie 5
+rule14:
+  all:
+    - equals($situation, 5)
+
+  "Zit er meer gas in het net dan benodigd?"
+    radio:
+      $overkill:
+        0: Nee
+        1: Ja
+
+rule15:
+  all:
+    - equals($situation, 5)
+    - equals($overkill, 0)
+
+    "Gaat Alkmaar onverwacht significante hoeveelheden gas het net in pompen?"
+    radio:
+      $alkSudden:
+        0: Nee
+        1: Ja
+rule16:
+  all:
+    - equals($situation, 5)
+    - equals($alkSudden, 1)
+
+  "Welke compressie-stations draaien op dit moment?":
+    checkbox:
+      Old: Oldenboorn
+      Wie: Wieringermeer
+      Bev: Beverwijk
+
+rule16:
+  all:
+    - equals($situation, 5)
+    - equals($alkSudden, 0)
+
+  "Er komt dus veel h-gas bij Wieringermeer in het net, zou Wieringermeer het alleen aan kunnen?"
+    radio:
+      $wierAan:
+        0: Nee
+        1: Ja
+
+# Goals situatie 5
+goal15:
+  all:
+    - equals($situation, 5)
+    - equals($overkill, 1)
+
+  goal: "Zet alle compressie-stations aan."
+
+goal16:
+  all:
+    - equals($situation, 5)
+    - equals($alkSudden, 1)
+    - equals($Old, true)
+    - equals($Wie, false)
+    - equals($Bev, false)
+
+  goal: "Zet Oldenboorn uit en Wieringermeer aan."
+
+goal17:
+  all:
+    - equals($situation, 5)
+    - equals($alkSudden, 1)
+    - equals($Old, false)
+    - equals($Wie, false)
+    - equals($Bev, true)
+
+  goal: "Zet Beverwijk uit en Wieringermeer aan."
+
+goal18:
+  all:
+    - equals($situation, 5)
+    - equals($wierAan, 0)
+
+  goal: "Zet Wieringermeer en Beverwijk aan."
+
+goal19:
+  all:
+    - equals($situation, 5)
+    - equals($wierAan, 1)
+
+  goal: "Zet Wieringermeer aan."
+
