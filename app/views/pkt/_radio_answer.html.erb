@@ -1,0 +1,6 @@
+<% answer.options.each do |value, label| %>
+
+    <%= radio_button_tag(answer.fact_name, value) %>
+    <%= label_tag("#{answer.fact_name}_#{value}", label) %>
+
+<% end %>

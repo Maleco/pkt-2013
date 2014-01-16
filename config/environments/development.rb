@@ -30,4 +30,5 @@ Pkt2013::Application.configure do
   # allow these ip addresses for the better error gem
   BetterErrors::Middleware.allow_ip! '192.168.2.64'
   BetterErrors::Middleware.allow_ip! '192.168.2.13'
+
 end

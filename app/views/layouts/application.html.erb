@@ -8,11 +8,17 @@
 </head>
 <body>
 
-<%= link_to 'Opnieuw', pages_home_path %>
+<div class="row">
 
-<h1><%= @description %></h1>
+  <div class="small-8 small-centered column">
 
-<%= yield %>
+    <%= link_to 'Opnieuw', pages_home_path, :class => 'button secondary tiny' %>
+
+    <%= yield %>
+
+  </div>
+
+</div>
 
 </body>
 </html>

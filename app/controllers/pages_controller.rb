@@ -1,32 +1,34 @@
 class PagesController < ApplicationController
 
-  def test
-
-
-
-  end
-
   def home
 
+    # TODO: this temporarily should be removed when converted to a gem
+    load "#{Rails.root}/lib/pkt_development.rb"
 
+    # get a knowledge base with specified label
+    k = knowledge_base :pkt
 
-    # solve returns the next question
-    question = KnowledgeBase::Solver.solve(params, cookies)
+    # add the rules from the yml files
+    k.add_rules
 
-    # there are no more questions, render the goal page
-    if question.nil?
+    # assert facts from the parameters
+    k.update_from_params params
 
-      @station1 = KnowledgeBase::Questions.instance.station1
-      @station2 = KnowledgeBase::Questions.instance.station2
-      @station3 = KnowledgeBase::Questions.instance.station3
+    # get the current rule
+    @rule = k.current_rule
 
-      render('questions/goal')
+    # if there is no next rule, render result
+    if @rule.nil?
+
+      # get the possible result rules
+      @results = k.result
+
+      # render the result page
+      render :result
 
     else
 
-      @description = question.description
-
-      render(question.view)
+      render :rule
 
     end
 

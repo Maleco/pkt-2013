@@ -1,0 +1,20 @@
+<h1>Regel: <%= @rule.name %></h1>
+<hr/>
+
+<%= form_tag({controller: 'pages', action: 'home'}, method: 'post') do %>
+
+    <%= knowledge_base_fields  %>
+
+    <% @rule.questions.each do |question| %>
+
+        <h3><%= question.content %></h3>
+
+        <%= render(question.answer.template, :answer => question.answer) %>
+
+        <hr/>
+
+    <% end %>
+
+    <%= submit_tag('Verstuur', :class => 'button') %>
+
+<% end %>

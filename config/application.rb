@@ -25,7 +25,7 @@ module Pkt2013
     config.assets.precompile += %w( .svg .eot .woff .ttf )
 	
     # add autoload path for the classes of the application
-    config.autoload_paths += %W(#{config.root}/app/classes)
+    # config.autoload_paths += %W(#{config.root}/app/classes)
 
     # setting for Heroku
     config.assets.initialize_on_precompile = false

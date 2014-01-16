@@ -1,0 +1,9 @@
+<% answer.options.each do |fact_name, label| %>
+
+    <!-- the hidden field is added, so when checkbox NOT checked the value is stull posted -->
+    <%= hidden_field_tag fact_name, 0 %>
+    <%= check_box_tag fact_name %>
+    <%= label_tag(fact_name, label) %>
+    <br />
+
+<% end %>

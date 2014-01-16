@@ -1,87 +1,24 @@
 rule0:
+  "Getal?":
+    text: $getal
 
-  "Wat is de temperatuur?"
-
-    text: temperature
-
-
-# name of the rule, can be omitted
 rule1:
-
-  # question asked by the rule
-  "Wat is je locatie?":
-
-    # question answer type
-    radio:
-
-      # fact name
-      $location:
-
-        # value: label content
-        1: Groningen
-        2: Leeuwarden
-        3: Drenthe
-
-# question asked by the rule
-  "Wat is de temperatuur?"
-
-    # question answer type: fact name
-    text: temperature
-
-  # the question
-  "Wat is van toepassing?":
-
-    # question answering type
-    checkbox:
-
-      # fact name: label content
-      # based on checked or not -> facts created with value true or false, so always created
-      chocolat: Chocola
-      icecream: Ijs
-      soda: Cola
-
-
-rule2:
-
-
-  # if a single one of the conditions listed here matches, the rule is applicable
-  any:
-    -
-
-  # if all of the conditions here matches, the rule is applicable
   all:
-    - equals(:chocolat, :soda)
-    - diff(:chocolat, :soda)
-    - greater(:temperature, 16)
-    - less(:temperature, 10)
+    - has($getal)
 
-  # ask the question
-  "Ben je het eens met de stelling?":
+  $getal2: $getal + 3
 
-    radio:
-      statement:
-        1: Ja
-        0: Nee
+result1:
 
+  all:
+    - greater($getal2, 5)
 
+  goal: "Meer dan 5!"
 
-# goal is simply a rule without another question(s)
-# but only called when no other rule can be called
-goal1:
-  condition:
-      all:
-        - equal(statement, 0)
+result2:
 
-  "Zet het station uit"
+  all:
+    - less($getal2, 5)
 
-goal2:
-
-  condition:
-
-      all:
-
-        - equal(statment, 1)
-
-  "Zet het station aan"
-
+  goal: "Minder dan 5!"
 

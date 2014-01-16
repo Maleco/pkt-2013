@@ -1,0 +1,17 @@
+<h1>Oplossing</h1>
+<hr/>
+
+<% if @results.count > 0 %>
+
+    <% @results.each do |result| %>
+
+        <p><%= result.goal %></p>
+
+    <% end %>
+
+
+<% else %>
+
+    <p>Alle mogelijke regels zijn al behandeld en geen enkel doel past bij de huidige feiten met hun waarden.</p>
+
+<% end %>

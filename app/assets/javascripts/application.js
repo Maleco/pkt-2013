@@ -15,7 +15,7 @@
 //= require jquery_ujs
 //= require vendor/modernizr
 //= require foundation
-//= require turbolinks
+
 //= require_self
 
 $(document).ready(function()
